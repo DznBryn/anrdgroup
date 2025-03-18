@@ -45,3 +45,7 @@ next-env.d.ts
 
 # Add this line
 logs/oAuthClient-log.log
+
+# Logs
+logs/
+*.log
