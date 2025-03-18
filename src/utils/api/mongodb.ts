@@ -68,7 +68,7 @@ export async function validateUser(email: string, password: string) {
 export async function updateQuickBooksToken(token: TokenResponse) {
   const client = await clientPromise;
   const db = client.db(process.env.MONGODB_DB);
-  const qbAuthCollection = db.collection('qb_auth');
+  const qbAuthCollection = process.env.NODE_ENV === 'development' ? db.collection('qb_auth') : db.collection('qb_auth_prod');
 
   const existingDocs = await qbAuthCollection.countDocuments();
   // console.log("existingDocs", qbAuthCollection);c
@@ -110,7 +110,7 @@ export async function getQuickBooksToken(): Promise<TokenResponse | null> {
   try {
     const client = await clientPromise;
     const db = client.db(process.env.MONGODB_DB);
-    const qbAuthCollection = db.collection('qb_auth');
+    const qbAuthCollection = process.env.NODE_ENV === 'development' ? db.collection('qb_auth') : db.collection('qb_auth_prod');
 
     // There should only be one token document in the collection
     const tokenDoc = await qbAuthCollection.findOne({});
