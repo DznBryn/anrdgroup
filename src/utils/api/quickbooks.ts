@@ -122,6 +122,7 @@ export async function validateAccessToken(redirectUrl: string) {
   }
 
   if (!oauthClient.isAccessTokenValid()) {
+    console.log('ACCESS TOKEN INVALID', oauthClient.isAccessTokenValid());
     const returnUrl = encodeURIComponent(redirectUrl);
     redirect(`/api/quickbooks/refresh-token?returnUrl=${returnUrl}`);
   }
