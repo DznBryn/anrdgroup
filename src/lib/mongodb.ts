@@ -1,20 +1,25 @@
-import { MongoClient, ServerApiVersion } from 'mongodb';
+import { MongoClient, ServerApiVersion, MongoClientOptions } from 'mongodb';
 
 if (!process.env.MONGODB_URI) {
   throw new Error('Please add your Mongo URI to .env.local');
 }
 
 const uri = process.env.MONGODB_URI;
-const options = {
-  maxPoolSize: 5, // Reduced from 10 to prevent connection overload
-  minPoolSize: 1, // Ensure at least one connection is maintained
-  maxIdleTimeMS: 15000, // Close idle connections after 15 seconds
+const options: MongoClientOptions = {
+  maxPoolSize: 3, // Reduce from 5 to 3
+  minPoolSize: 1,
+  maxIdleTimeMS: 10000, // Reduce idle time to 10 seconds
   serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 30000, // Reduced from 45000
+  socketTimeoutMS: 20000,
   connectTimeoutMS: 10000,
   serverApi: ServerApiVersion.v1,
   retryWrites: true,
-  w: 1, // Changed from string to number
+  w: 'majority',
+  // Add connection pool monitoring
+  monitorCommands: true,
+  // Modern connection settings
+  directConnection: false,
+  heartbeatFrequencyMS: 10000
 };
 
 let client: MongoClient;
@@ -46,17 +51,17 @@ if (process.env.NODE_ENV === 'development') {
     });
 }
 
-// Add connection monitoring
-client?.on('connectionPoolCreated', () => {
-  console.log('Connection pool created');
+// Add connection pool monitoring
+client?.on('connectionPoolCreated', (event) => {
+  console.log('Connection pool created with size:', event.options.maxPoolSize);
 });
 
-client?.on('connectionPoolClosed', () => {
-  console.log('Connection pool closed');
+client?.on('connectionCreated', (event) => {
+  console.log('New connection created, current connections:', event.connectionId);
 });
 
-client?.on('timeout', () => {
-  console.log('MongoDB operation timeout');
+client?.on('connectionClosed', (event) => {
+  console.log('Connection closed:', event.connectionId);
 });
 
 export default clientPromise;
