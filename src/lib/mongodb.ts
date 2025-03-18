@@ -15,9 +15,7 @@ const options: MongoClientOptions = {
   serverApi: ServerApiVersion.v1,
   retryWrites: true,
   w: 'majority',
-  // Add connection pool monitoring
   monitorCommands: true,
-  // Modern connection settings
   directConnection: false,
   heartbeatFrequencyMS: 10000
 };
