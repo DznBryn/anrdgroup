@@ -5,7 +5,7 @@ const oauthClient = new OAuthClient({
   clientSecret: process.env.QUICKBOOKS_CLIENT_SECRET!,
   environment: process.env.NODE_ENV === 'production' ? 'production' : 'sandbox',
   redirectUri: `${process.env.NEXT_PUBLIC_APP_URL}/api/quickbooks/callback`,
-  logging: true,
+  logging: process.env.NODE_ENV === 'development' ? true : false,
 });
 
 // Initialize token function for server-side use
