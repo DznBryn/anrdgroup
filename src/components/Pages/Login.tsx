@@ -3,21 +3,22 @@
 import { useRouter } from 'next/navigation';
 import { CALLBACK_URL } from '@/lib/conts';
 import { UserState, useStore } from '@/utils/zustand/store';
-import UserForm from '@/components/Forms/UserForm';
+import UserForm, { GenericFormValues } from '@/components/Forms/UserForm';
 import { toast } from 'sonner';
 
 export default function LoginPage() {
 	const router = useRouter();
 	const { setUser } = useStore<UserState>((state) => state.user);
 
-	const handleLogin = async (formData: {
-		email: string;
-		password: string;
-		firstName?: string;
-		lastName?: string;
-		accountType?: 'tenant' | 'landlord' | 'manager' | 'admin';
-	}) => {
+	const handleLogin = async (formData: GenericFormValues) => {
 		console.log('formData', formData);
+		
+		// Ensure password exists before proceeding
+		if (!formData.password) {
+			toast.error('Password is required');
+			throw new Error('Password is required');
+		}
+		
 		try {
 			const response = await fetch('/api/auth/login', {
 				method: 'POST',

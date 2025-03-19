@@ -29,7 +29,7 @@ import { Building, Home } from 'lucide-react';
 import { useStore } from '@/utils/zustand/store';
 import { Customer as CustomerType, Vendor as VendorType } from 'intuit-oauth';
 
-type GenericFormValues = {
+export type GenericFormValues = {
 	firstName?: string;
 	lastName?: string;
 	organization?: string;
