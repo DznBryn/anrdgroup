@@ -39,18 +39,8 @@ export async function POST(request: NextRequest) {
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 // 1 day
     });
-
-    if (!qbAuthData) {
-      return NextResponse.redirect(new URL('/quickbooks', request.url));
-    }
     
     if (qbAuthData) {
-      response.cookies.set('qb_access_token', qbAuthData.access_token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 2 // 2 hours
-      });
 
       response.cookies.set('qb_refresh_token', qbAuthData.refresh_token, {
         httpOnly: true,
