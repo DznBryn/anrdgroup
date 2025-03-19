@@ -1,8 +1,11 @@
 import { create } from "zustand";
 import type { FormProps, ModalProps } from "@/types/type";
-import { User } from "@/types/user";
+import { AccountType, User } from "@/types/user";
 import { toast } from "sonner";
+import { Customer } from "intuit-oauth";
+import { Vendor } from "intuit-oauth";
 import { DBUser } from "@/types/mongo-db/User";
+
 export interface UserState {
   account: User | null;
   setUser: (user: User) => void;
@@ -14,6 +17,11 @@ export interface StoreState {
   entries: {
     modal: ModalProps;
     form: FormProps;
+    selectedUser: {
+      user: Customer | Vendor | DBUser | null;
+      type: AccountType | null;
+    };
+    setSelectedUser: (user: Customer | Vendor | DBUser, type: AccountType) => void;
   };
   user: UserState;
 }
@@ -39,7 +47,7 @@ const store = (set: (fn: (state: StoreState) => StoreState) => void) => ({
         password: string;
         firstName?: string;
         lastName?: string;
-        accountType?: 'tenant' | 'landlord' | 'manager' | 'admin';
+        accountType?: AccountType;
       }) => {
         console.log('formData', formData);
         try {
@@ -83,20 +91,20 @@ const store = (set: (fn: (state: StoreState) => StoreState) => void) => ({
           throw error;
         }
       },
-      handleUpdateUser: async (formData: DBUser) => {
-        console.log('formData', formData);
+      handleUpdateUser: async (userData: DBUser) => {
+        console.log('formData', userData);
         try {
           const response = await fetch('/api/user', {
-            method: 'POST',
+            method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              email: formData.email,
-              password: formData.password,
-              firstName: formData.firstName,
-              lastName: formData.lastName,
-              accountType: formData.accountType,
+              ...userData,
+              email: userData.email,
+              firstName: userData.firstName,
+              lastName: userData.lastName,
+              accountType: userData.accountType,
             }),
           });
 
@@ -108,7 +116,7 @@ const store = (set: (fn: (state: StoreState) => StoreState) => void) => ({
 
           console.log('data', data);
 
-          return set((state) => ({
+          set((state) => ({
             ...state,
             entries: {
               ...state.entries,
@@ -118,12 +126,15 @@ const store = (set: (fn: (state: StoreState) => StoreState) => void) => ({
               },
             },
           }));
+
+          return data;
         } catch (error) {
-          console.error('Register error:', error);
-          toast.error('Register failed. Please check your credentials.');
+          console.error('Update user error:', error);
+          toast.error('Update user failed. Please check your credentials.');
           throw error;
         }
       },
+
     },
     form: {
       user: null,
@@ -139,6 +150,22 @@ const store = (set: (fn: (state: StoreState) => StoreState) => void) => ({
           },
         }));
       },
+    },
+    setSelectedUser: (user: Customer | Vendor | DBUser, type: AccountType) => {
+      set((state) => ({
+        ...state,
+        entries: {
+          ...state.entries,
+          selectedUser: {
+            user,
+            type,
+          },
+        },
+      }));
+    },
+    selectedUser: {
+      user: null,
+      type: null,
     },
   },
   user: {
@@ -172,4 +199,4 @@ const store = (set: (fn: (state: StoreState) => StoreState) => void) => ({
   },
 });
 
-export const useStore = create(store);
+export const useStore = create<StoreState>(store);

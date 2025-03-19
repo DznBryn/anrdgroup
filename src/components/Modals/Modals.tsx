@@ -1,13 +1,27 @@
 'use client';
 
 import { Fragment, type ReactNode } from 'react';
-import { Dialog, DialogPanel, Transition, TransitionChild } from '@headlessui/react';
+import {
+	Dialog,
+	DialogPanel,
+	Transition,
+	TransitionChild,
+} from '@headlessui/react';
 import { ENUM_DIALOGS, ENUM_DIALOGS_TYPE } from '@/lib/conts';
 import { useStore } from '@/utils/zustand/store';
-import CreateUserForm from '../Forms/UserForm';
+import UserForm from '../Forms/UserForm';
+import { DBUser } from '@/types/mongo-db/User';
+import { Customer } from 'intuit-oauth';
+import { Vendor } from 'intuit-oauth';
 
 export default function Modals() {
-	const { modal: dialog, onChange, handleCreateUser } = useStore((store) => store.entries.modal);
+	const {
+		modal: dialog,
+		onChange,
+		handleCreateUser,
+		handleUpdateUser,
+	} = useStore((store) => store.entries.modal);
+	const { selectedUser } = useStore((store) => store.entries);
 	const isDialogValid = ENUM_DIALOGS.includes(dialog as ENUM_DIALOGS_TYPE);
 
 	const mapDialogs: Record<string, ReactNode> = {
@@ -16,35 +30,104 @@ export default function Modals() {
 				className='w-full h-full sm:h-auto sm:w-auto max-w-4xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all grid grid-cols-1 gap-6'
 				style={{
 					minWidth: '350px',
-				}}>
-			</DialogPanel>
+				}}></DialogPanel>
 		),
 		'seller-full-form': (
 			<DialogPanel
 				className='w-full h-full sm:h-auto sm:w-auto max-w-4xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all grid grid-cols-1 gap-6'
 				style={{
 					minWidth: '350px',
-				}}>
-
-			</DialogPanel>
+				}}></DialogPanel>
 		),
 		'create-user': (
 			<DialogPanel
-				className='w-full h-full sm:h-auto max-w-4xl transform overflow-hidden rounded-2xl bg-transparent align-middle shadow-xl transition-all grid grid-cols-1 gap-6'
+				className='w-auto h-full sm:h-auto max-w-4xl transform overflow-hidden rounded-2xl bg-transparent align-middle shadow-xl transition-all grid grid-cols-1 gap-6'
 				style={{
 					minWidth: '350px',
 				}}>
-				<CreateUserForm 
+				<UserForm
 					onSubmit={async (values) => {
 						if (values.email && values.password) {
 							await handleCreateUser({
 								...values,
 								email: values.email,
-								password: values.password
+								password: values.password,
 							});
 						}
-					}} 
-					isManager={true} 
+					}}
+					isManager={true}
+				/>
+			</DialogPanel>
+		),
+		'update-user': (
+			<DialogPanel
+				className='w-auto h-full sm:h-auto max-w-4xl transform overflow-hidden rounded-2xl bg-transparent align-middle shadow-xl transition-all grid grid-cols-1 gap-6'
+				style={{
+					minWidth: '350px',
+				}}>
+				<UserForm
+					onSubmit={async (values: DBUser) => {
+						await handleUpdateUser(values);
+					}}
+					defaultValues={{
+						firstName:
+							selectedUser?.type === 'landlord'
+								? (selectedUser?.user as Vendor).GivenName
+								: selectedUser?.type === 'tenant'
+								? (selectedUser?.user as Customer).GivenName
+								: selectedUser?.type === 'manager'
+								? (selectedUser?.user as DBUser).firstName
+								: selectedUser?.type === 'admin'
+								? (selectedUser?.user as DBUser).firstName
+								: '',
+						lastName:
+							selectedUser?.type === 'landlord'
+								? (selectedUser?.user as Vendor).FamilyName
+								: selectedUser?.type === 'tenant'
+								? (selectedUser?.user as Customer).FamilyName
+								: selectedUser?.type === 'manager'
+								? (selectedUser?.user as DBUser).lastName
+								: selectedUser?.type === 'admin'
+								? (selectedUser?.user as DBUser).lastName
+								: '',
+						email:
+							selectedUser?.type === 'landlord'
+								? (selectedUser?.user as Vendor).PrimaryEmailAddr?.Address
+								: selectedUser?.type === 'tenant'
+								? (selectedUser?.user as Customer).PrimaryEmailAddr?.Address
+								: selectedUser?.type === 'manager'
+								? (selectedUser?.user as DBUser).email
+								: selectedUser?.type === 'admin'
+								? (selectedUser?.user as DBUser).email
+								: '',
+						organization:
+							selectedUser?.type === 'landlord'
+								? (selectedUser?.user as Vendor).CompanyName
+								: selectedUser?.type === 'manager'
+								? (selectedUser?.user as DBUser).companyName
+								: selectedUser?.type === 'admin'
+								? (selectedUser?.user as DBUser).companyName
+								: '',
+						phoneNumber:
+							selectedUser?.type === 'landlord'
+								? (selectedUser?.user as Vendor).PrimaryPhone?.FreeFormNumber
+								: selectedUser?.type === 'tenant'
+								? (selectedUser?.user as Customer).PrimaryPhone?.FreeFormNumber
+								: selectedUser?.type === 'manager'
+								? (selectedUser?.user as DBUser).phoneNumber
+								: selectedUser?.type === 'admin'
+								? (selectedUser?.user as DBUser).phoneNumber
+								: '',
+						accountType:
+							selectedUser?.type === 'landlord'
+								? 'landlord'
+								: selectedUser?.type === 'manager'
+								? 'manager'
+								: selectedUser?.type === 'admin'
+								? 'admin'
+								: 'tenant',
+					}}
+					isManager={true}
 				/>
 			</DialogPanel>
 		),
@@ -89,4 +172,3 @@ export default function Modals() {
 		</Transition>
 	) : null;
 }
-

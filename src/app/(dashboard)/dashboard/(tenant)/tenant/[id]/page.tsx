@@ -82,9 +82,9 @@ export default async function TenantPage({
 			(invoice) => invoice.CustomerRef.value === tenant?.Id
 		) as Invoice[];
 
-		console.log(tenant);
+		// console.log(tenant);
 		// console.log(customers);
-		console.log(tenantInvoices);
+		// console.log(tenantInvoices);
 
 		return (
 			<div>

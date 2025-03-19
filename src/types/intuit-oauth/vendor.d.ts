@@ -45,6 +45,7 @@ declare module 'intuit-oauth' {
     WebAddr?: VendorWebsite;
     BillAddr?: VendorAddress;
     MetaData?: VendorMetadata;
+    Notes?: string;
   }
 
   export interface VendorResponse {

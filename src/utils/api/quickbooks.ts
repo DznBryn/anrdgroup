@@ -170,7 +170,7 @@ export async function updateCustomer(access_token: string, refreshToken: string,
     }
 
     const response = await oauthClient.makeApiCall({
-      url: `${QB_API_URL}/v3/company/${process.env.QUICKBOOKS_REALM_ID}/customer/${customer.Id}?minorversion=${MINOR_VERSION}`,
+      url: `${QB_API_URL}/v3/company/${process.env.QUICKBOOKS_REALM_ID}/customer?minorversion=${MINOR_VERSION}`,
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -212,6 +212,35 @@ export async function createVendor(access_token: string, refreshToken: string, v
     return data;
   } catch (error) {
     console.error('Error creating QuickBooks vendor:', error);
+    throw error;
+  }
+}
+
+export async function updateVendor(access_token: string, refreshToken: string, vendor: Vendor) {
+  let accessToken = access_token;
+  try {
+    const isAccessTokenValid = oauthClient.isAccessTokenValid();
+
+    if (!isAccessTokenValid) {
+      const refreshResponse = await oauthClient.refreshUsingToken(refreshToken);
+      const { access_token } = await refreshResponse.getToken();
+      accessToken = access_token;
+    }
+
+    const response = await oauthClient.makeApiCall({
+      url: `${QB_API_URL}/v3/company/${process.env.QUICKBOOKS_REALM_ID}/vendor?minorversion=${MINOR_VERSION}`,
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }, 
+      body: JSON.stringify({...vendor, sparse: true}),
+    });
+
+    const data = await response.json;
+    return data;
+  } catch (error) {
+    console.error('Error updating QuickBooks vendor:', error);
     throw error;
   }
 }

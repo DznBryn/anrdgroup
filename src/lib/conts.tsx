@@ -2,8 +2,8 @@ import Icons from '@/components/Icons/Icons';
 import Button from '@/components/Buttons/Button';
 import type { ProcessCardProps, SituationProps } from '@/types/type';
 
-export type ENUM_DIALOGS_TYPE = 'seller-form' | 'seller-full-form' | 'create-user';
-export const ENUM_DIALOGS: Array<ENUM_DIALOGS_TYPE> = ['seller-form', 'seller-full-form', 'create-user'];
+export type ENUM_DIALOGS_TYPE = 'seller-form' | 'seller-full-form' | 'create-user' | 'update-user';
+export const ENUM_DIALOGS: Array<ENUM_DIALOGS_TYPE> = ['seller-form', 'seller-full-form', 'create-user', 'update-user'];
 
 export const SITUATIONS: Array<SituationProps> = [
 	{

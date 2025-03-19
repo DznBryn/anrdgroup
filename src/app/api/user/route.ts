@@ -1,11 +1,11 @@
 import { cookies } from "next/headers";
-import { Customer } from "intuit-oauth";
+import { Customer, Vendor } from "intuit-oauth";
 import { DBUser } from "@/types/mongo-db/User";
-import { findUserByEmail, updateUser } from "@/utils/api/mongodb";
+import { findUserById, findUserByIntuitCustomerId, updateUser } from "@/utils/api/mongodb";
 import { NextRequest, NextResponse } from "next/server";
-import { updateCustomer } from "@/utils/api/quickbooks";
+import { updateCustomer, updateVendor } from "@/utils/api/quickbooks";
 
-export async function POST(request: NextRequest) {
+export async function PUT(request: NextRequest) {
   try {
     const userData = await request.json();
     const cookieStore = await cookies();
@@ -14,40 +14,89 @@ export async function POST(request: NextRequest) {
       refresh_token: cookieStore.get('qb_refresh_token')?.value
     };
 
-    const existingUser = await findUserByEmail(userData.email) as DBUser;
-    if (!existingUser) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
+    const existingUser = await findUserByIntuitCustomerId(userData.intuitCustomerId) as DBUser;
 
-    if(userData.accountType === 'tenant' || userData.accountType === 'landlord') {
-      const initCustomer: Customer = {
-        FullyQualifiedName: `${existingUser.firstName} ${existingUser.lastName}`,
-        PrimaryEmailAddr: {
-          Address: existingUser.email
-        },
-        DisplayName: `${existingUser.firstName} ${existingUser.lastName}`,
-        Suffix: "",
-        Title: "",
-        MiddleName: "",
-        Notes: "",
-        FamilyName: existingUser?.lastName ?? "",
-        PrimaryPhone: {
-          FreeFormNumber: existingUser?.phoneNumber ?? ""
-        },
-        CompanyName: existingUser?.companyName ?? "",
-        // TODO: Add bill address from properties
-        BillAddr: {
-          CountrySubDivisionCode: existingUser?.address?.CountrySubDivisionCode ?? "",
-          City: existingUser?.address?.City ?? "",
-          PostalCode: existingUser?.address?.PostalCode ?? "",
-          Line1: existingUser?.address?.Line1 ?? "",
-        },
-        GivenName: existingUser.firstName
+    if (userData.accountType === 'tenant' || userData.accountType === 'landlord') {
+      switch (userData.accountType) {
+        case 'tenant':
+          const initCustomer: Customer = {
+            Id: userData?.intuitCustomerId ?? "",
+            SyncToken: userData?.syncToken ?? "",
+            FullyQualifiedName: `${userData.firstName} ${userData.lastName}`,
+            PrimaryEmailAddr: {
+              Address: userData.email
+            },
+            DisplayName: `${userData.firstName} ${userData.lastName}`,
+            Suffix: "",
+            Title: "",
+            MiddleName: "",
+            Notes: "Tenant",
+            FamilyName: userData?.lastName ?? "",
+            PrimaryPhone: {
+              FreeFormNumber: userData?.phoneNumber ?? ""
+            },
+            CompanyName: userData?.companyName ?? "",
+            // TODO: Add bill address from properties
+            // BillAddr: {
+            //   CountrySubDivisionCode: userData?.address?.CountrySubDivisionCode ?? "",
+            //   City: userData?.address?.City ?? "",
+            //   PostalCode: userData?.address?.PostalCode ?? "",
+            //   Line1: userData?.address?.Line1 ?? "",
+            // },
+            GivenName: userData.firstName
+          }
+          const { Customer: updatedCustomerUser } = await updateCustomer(tokens.access_token!, tokens.refresh_token!, initCustomer) as unknown as { Customer: Customer };
+
+          if (existingUser) {
+            delete userData.syncToken;
+            await updateUser(existingUser?._id?.toString() ?? "", {
+              ...userData,
+              intuitCustomerId: updatedCustomerUser.Id,
+              
+            });
+          }
+          return NextResponse.json({ success: true, user: updatedCustomerUser });
+        case 'landlord':
+          const initVendor: Vendor = {
+            Id: userData?.intuitCustomerId ?? "",
+            SyncToken: userData?.syncToken ?? "",
+            PrimaryEmailAddr: {
+              Address: userData.email
+            },
+            GivenName: userData.firstName ?? "",
+            DisplayName: userData.organization ?? `${userData.firstName} ${userData.lastName}`,
+            CompanyName: userData.organization ?? "",
+            FamilyName: userData.lastName ?? "",
+            PrimaryPhone: {
+              FreeFormNumber: userData.phoneNumber ?? ""
+            },
+            PrintOnCheckName: userData.organization ?? `${userData.firstName} ${userData.lastName}`,
+            Notes: "Landlord",
+            // BillAddr: {
+            //   CountrySubDivisionCode: "",
+            //   City: "",
+            //   PostalCode: "",
+            //   Line1: "",
+            // },
+          }
+          const { Vendor: updatedVendorUser } = await updateVendor(tokens.access_token!, tokens.refresh_token!, initVendor) as unknown as { Vendor: Vendor };
+          if (existingUser) {
+            delete userData.syncToken;
+            await updateUser(existingUser?._id?.toString() ?? "", {
+              ...userData,
+              companyName: updatedVendorUser.CompanyName,
+              intuitCustomerId: updatedVendorUser.Id,
+            });
+          }
+          return NextResponse.json({ success: true, user: updatedVendorUser });
       }
-      const updatedUser = await updateCustomer(tokens.access_token!, tokens.refresh_token!, initCustomer);
-      return NextResponse.json({ success: true, user: updatedUser });
     } else {
-      const updatedUser = await updateUser(existingUser?._id?.toString() ?? "", userData);
+      const existingUserById = await findUserById(userData?.id ?? "") as DBUser;
+      if (!existingUserById) {
+        return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
+      }
+      delete userData.syncToken;
+      const updatedUser = await updateUser(existingUserById?._id?.toString() ?? "", userData);
       return NextResponse.json({ success: true, user: updatedUser });
     }
   } catch (error) {

@@ -55,6 +55,17 @@ export async function findUserByEmail(email: string): Promise<DBUser | null> {
   return db.collection<DBUser>('users').findOne({ email });
 }
 
+export async function findUserByIntuitCustomerId(intuitCustomerId: string): Promise<DBUser | null> {
+  const client = await clientPromise;
+  const db = client.db(process.env.MONGODB_DB);
+  return db.collection<DBUser>('users').findOne({ intuitCustomerId });
+}
+export async function findUserById(id: string): Promise<DBUser | null> {
+  const client = await clientPromise;
+  const db = client.db(process.env.MONGODB_DB);
+  return db.collection<DBUser>('users').findOne({ _id: new ObjectId(id) });
+}
+
 export async function validateUser(email: string, password: string) {
   const user = await findUserByEmail(email);
   if (!user) return null;
@@ -135,7 +146,7 @@ export const checkAccountType = async (userData: User | null, pathname: string, 
 
   let customerId: string | undefined;
 
-  if (userData.intuitCustomerId.length === 0) {
+  if (userData.intuitCustomerId.length === 0 && userData.accountType !== 'manager' && userData.accountType !== 'admin') {
     const customers = await getCustomers(tokens.access_token!, tokens.refresh_token!) as Customer[];
 
     const customer = customers.find((c: Customer) => c.DisplayName.toLowerCase() === `${userData.firstName} ${userData.lastName}`.toLowerCase());

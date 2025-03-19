@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import type { ENUM_DIALOGS_TYPE } from "@/lib/conts";
+import { DBUser } from "./mongo-db/User";
+
 export declare interface ENV_PROPS {
   KLAVIYO_TEST_API_KEY?: string
   KLAVIYO_API_VERSION?: string
@@ -17,6 +19,8 @@ export declare interface ModalProps {
     lastName?: string;
     accountType?: 'tenant' | 'landlord' | 'manager' | 'admin';
   }) => Promise<{ success: boolean; userId?: string; error?: string }>;
+  handleUpdateUser: (userData: DBUser) => Promise<{ success: boolean; userId?: string; error?: string }>;
+  
 }
 
 export declare interface FormProps {
