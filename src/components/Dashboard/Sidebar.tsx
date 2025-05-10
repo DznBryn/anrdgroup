@@ -18,9 +18,12 @@ import {
 	SidebarGroupContent,
 	SidebarMenuButton,
 } from '../ui/sidebar';
+import { usePathname } from 'next/navigation';
 
 export default function SidebarPage() {
 	const { account } = useStore((state) => state.user);
+	const pathname = usePathname();
+
 	const AccountType = {
 		tenant: account?.accountType === 'tenant',
 		landlord: account?.accountType === 'landlord',
@@ -50,6 +53,9 @@ export default function SidebarPage() {
 							{(AccountType.admin || AccountType.manager) && (
 								<>
 									<SidebarMenuItem>
+										<SidebarHeader className='text-gray-400 text-sm font-bold'>
+											Manager Portal
+										</SidebarHeader>
 										<SidebarMenuButton className='hover:bg-gray-800'>
 											<Link
 												href='/dashboard'
@@ -67,9 +73,12 @@ export default function SidebarPage() {
 											</Link>
 										</SidebarMenuButton>
 									</SidebarMenuItem>
+									<hr className='border-gray-400' />
 								</>
 							)}
-							{AccountType.tenant && (
+							{(AccountType.tenant ||
+								((AccountType.admin || AccountType.manager) &&
+									pathname.includes('dashboard/tenant'))) && (
 								<>
 									<SidebarMenuItem>
 										<SidebarMenuButton className='hover:bg-gray-800'>

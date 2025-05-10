@@ -1,6 +1,6 @@
 'use client';
 
-import { CSSProperties, useEffect } from 'react';
+import { CSSProperties, useEffect, useCallback } from 'react';
 import Sidebar from '@/components/Dashboard/Sidebar';
 import { UserState, useStore } from '@/utils/zustand/store';
 import { User } from '@/types/user';
@@ -19,23 +19,21 @@ export default function DashboardLayout({
 	const pathname = usePathname();
 	const { setUser } = useStore<UserState>((state) => state.user);
 
+	const handleUserRedirect = useCallback((user: User) => {
+		if (user.accountType === 'tenant' && !pathname.includes('/dashboard/tenant')) {
+			router.push(`/dashboard/tenant/${user.intuitCustomerId}`);
+		} else if (user.accountType === 'landlord' && !pathname.includes('/dashboard/landlord')) {
+			router.push(`/dashboard/landlord/${user.intuitCustomerId}`);
+		}
+	}, [pathname, router]);
+
+
 	useEffect(() => {
 		if (initialUser) {
 			setUser(initialUser);
-			if (
-				initialUser.accountType === 'tenant' &&
-				!pathname.includes('/dashboard/tenant')
-			) {
-				router.push(`/dashboard/tenant/${initialUser.intuitCustomerId}`);
-			}
-			if (
-				initialUser.accountType === 'landlord' &&
-				!pathname.includes('/dashboard/landlord')
-			) {
-				router.push(`/dashboard/landlord/${initialUser.intuitCustomerId}`);
-			}
+			handleUserRedirect(initialUser);
 		}
-	}, [initialUser]);
+	}, []);
 
 	return (
 		<SidebarProvider

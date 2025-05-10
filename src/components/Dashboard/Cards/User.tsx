@@ -1,11 +1,11 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { Card, CardTitle, CardHeader, CardContent } from '@/components/ui/card';
 import { Customer as CustomerType, Vendor } from 'intuit-oauth';
 import { useStore } from '@/utils/zustand/store';
 import { AccountType } from '@/types/user';
 import { useEffect } from 'react';
+import UserDetail from './UserDetail';
 interface TenantProps {
 	customer?: CustomerType;
 	vendor?: Vendor;
@@ -62,52 +62,14 @@ export default function Tenant({ customer, vendor }: TenantProps) {
 					<p>Card Footer</p>
 				</CardFooter> */}
 			</Card>
-			<Card className='gap-2 col-span-2 border-0 bg-white'>
-				<CardHeader className='flex flex-row justify-between w-full items-center'>
-					<div>
-						<CardTitle>{displayName}</CardTitle>
-						{companyName && (
-							<div className='flex flex-col'>
-								<p className='font-bold text-gray-800 m-0'>Company</p>
-								<p className='font-medium m-0'>{companyName}</p>
-							</div>
-						)}
-					</div>
-					<Button
-						variant='link'
-						className='p-4 py-0 text-blue-500 underline cursor-pointer'
-						onClick={handleEdit}>
-						Edit
-					</Button>
-				</CardHeader>
-				<CardContent>
-					<div className='flex justify-between gap-1'>
-						<div>
-							{email && (
-								<div className='flex gap-2'>
-									<p className='font-bold text-gray-800 m-0'>Email</p>
-									<p className='font-medium'>{email}</p>
-								</div>
-							)}
-							{phone && (
-								<div className='flex gap-2'>
-									<p className='font-bold text-gray-800 m-0'>Phone</p>
-									<p className='font-medium'>{phone}</p>
-								</div>
-							)}
-						</div>
-						<div className='flex gap-6'>
-							<div>
-								<p className=' font-bold text-gray-800 mb-0'>Billing address</p>
-								<p className='text-gray-800'>{fullAddress}</p>
-							</div>
-						</div>
-					</div>
-				</CardContent>
-				{/* <CardFooter>
-					<p>Card Footer</p>
-				</CardFooter> */}
-			</Card>
+			<UserDetail
+				displayName={displayName}
+				companyName={companyName}
+				email={email}
+				phone={phone}
+				fullAddress={fullAddress}
+				handleEdit={handleEdit}
+			/>
 		</div>
 	);
 }
