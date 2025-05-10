@@ -84,7 +84,7 @@ export default function TermsAndConditionsPage() {
             <p className="text-gray-600">
               During the tenant onboarding process or when submitting a service request through our platform, you will be asked 
               to provide your phone number and consent to receive text messages. You will be presented with language such as:
-              "We'll text you updates about your maintenance requests and property information – is that okay?" Your affirmative 
+              &quot;We&apos;ll text you updates about your maintenance requests and property information – is that okay?&quot; Your affirmative 
               response (verbal or by checking a box) constitutes your consent to receive SMS messages.
             </p>
             
@@ -96,7 +96,7 @@ export default function TermsAndConditionsPage() {
             
             <h3 className="text-xl font-semibold text-gray-700 mt-4">Opting Out</h3>
             <p className="text-gray-600">
-              You can opt out of receiving SMS messages at any time by replying "STOP" to any message you receive from us, 
+              You can opt out of receiving SMS messages at any time by replying &quot;STOP&quot; to any message you receive from us, 
               or by contacting customer support at support@anrdgroup.com. After opting out, you will receive one final message 
               confirming your opt-out.
             </p>
